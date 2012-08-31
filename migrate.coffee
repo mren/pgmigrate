@@ -6,7 +6,9 @@ _ = require 'underscore'
 async = require 'async'
 pg = require 'pg'
 
-module.exports = (path, connString, cb) ->
+module.exports = (path, connString, cb = ->) ->
+
+    results = []
 
     getSchemaVersion = (connection, cb) ->
         m = mohair()
@@ -55,7 +57,7 @@ module.exports = (path, connString, cb) ->
             return cb err if err?
             addVersionToSchemaInfo connection, migration.version, (err) ->
                 return cb err if err?
-                console.log "added #{migration.description} to database"
+                results.push "added #{migration.description} to database"
                 cb null
 
     executeMigrations = (connection, cb) ->
@@ -72,10 +74,10 @@ module.exports = (path, connString, cb) ->
                     return console.error err if err?
                     cb null
 
-    pg.connect config.psql, (err, connection) ->
+    pg.connect connString, (err, connection) ->
         return cb err if err?
         throw new Error err if err?
         executeMigrations connection, (err) ->
             return cb err if err?
             pg.end()
-            cb null, 'finished'
+            cb null, results

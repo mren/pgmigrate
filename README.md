@@ -7,7 +7,7 @@ Migration Tool for Postgres databases in node.js
 ```coffeescript
 megrim = require 'megrim'
 megrim path_to_migrations, psql_connection_string, (err, result) ->
-    console.err err if err
+    console.err err if err?
     console.log result
 ```
 

@@ -16,7 +16,7 @@ module.exports = (path, connString, cb = ->) ->
         connection.query m.sql(), m.params(), sqlhelper.getRows cb
 
     createSchemaInfoTableIfNotExists = (connection, cb) ->
-        connection.query "CREATE TABLE IF NOT EXISTS schema_info (version bigint NOT NULL);", cb
+        connection.query "CREATE TABLE IF NOT EXISTS schema_info (version bigint NOT NULL UNIQUE);", cb
 
     addVersionToSchemaInfo = (connection, version, cb) ->
         m = mohair()

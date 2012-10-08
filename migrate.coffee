@@ -78,6 +78,6 @@ module.exports = (path, connString, cb = ->) ->
         return cb err if err?
         throw new Error err if err?
         executeMigrations connection, (err) ->
-            return cb err if err?
             pg.end()
+            return cb err if err?
             cb null, results

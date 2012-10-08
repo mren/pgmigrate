@@ -38,6 +38,7 @@ module.exports = (path, connString, cb = ->) ->
         filenames = fs.readdirSync path
         availableSchemas = filenames.map (filename) -> parseSchemaFileName filename
         validSchemas = availableSchemas.filter isValidSchemaFile
+        _.sortBy validSchemas, (schema) -> schema.version
 
     getAllAlreadyExecutedMigrations = (connection, cb) ->
         getSchemaVersion connection, (err, schemas) ->

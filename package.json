@@ -1,7 +1,7 @@
 {
     "author": "Mark Engel <mark.c.engel@gmail.com> (https://engel.cx)",
     "name": "megrim",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "main": "migrate",
     "engines": {
         "node": "0.8.x",

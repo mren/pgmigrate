@@ -1,27 +1,26 @@
 fs = require 'fs'
 
-mohair = require('mohair').postgres
-sqlhelper = require 'sqlhelper'
+Mesa = require 'mesa'
 _ = require 'underscore'
 async = require 'async'
-pg = require 'pg'
 
-module.exports = (path, connString, cb = ->) ->
+module.exports = (path, connection, cb = ->) ->
+
+    mesa = Mesa
+        .connection(connection)
+        .table('schema_info')
+        .attributes(['version'])
+        .returning('version')
 
     results = []
 
-    getSchemaVersion = (connection, cb) ->
-        m = mohair()
-        m.select 'schema_info'
-        connection.query m.sql(), m.params(), sqlhelper.getRows cb
+    getSchemaVersion = (cb) -> mesa.find cb
 
-    createSchemaInfoTableIfNotExists = (connection, cb) ->
+    createSchemaInfoTableIfNotExists = (cb) ->
         connection.query "CREATE TABLE IF NOT EXISTS schema_info (version bigint NOT NULL UNIQUE);", cb
 
-    addVersionToSchemaInfo = (connection, version, cb) ->
-        m = mohair()
-        m.insert 'schema_info', {version: version}
-        connection.query m.sql(), m.params(), cb
+    addVersionToSchemaInfo = (version, cb) ->
+        mesa.insert({version: version}, cb)
 
     parseSchemaFileName = (filename) ->
         date = parseInt filename.split('-').shift(), 10
@@ -40,45 +39,41 @@ module.exports = (path, connString, cb = ->) ->
         validSchemas = availableSchemas.filter isValidSchemaFile
         _.sortBy validSchemas, (schema) -> schema.version
 
-    getAllAlreadyExecutedMigrations = (connection, cb) ->
-        getSchemaVersion connection, (err, schemas) ->
+    getAllAlreadyExecutedMigrations = (cb) ->
+        getSchemaVersion (err, schemas) ->
             return cb err if err?
             cb null, _.pluck schemas, 'version'
 
     getNewMigrations = (availableSchemas, executedVersions) ->
-        notInDatabase = (schemaFile) -> not _.include executedVersions, schemaFile.version
-        newMigrations = availableSchemas.filter notInDatabase
+        availableSchemas.filter (schemaFile) ->
+            not _.include executedVersions, "#{schemaFile.version}"
 
     addSqlToMigration = (migration) ->
         migration.sql = fs.readFileSync "#{path}/#{migration.filename}", 'utf8'
         migration
 
-    executeMigration = (connection, migration, cb) ->
+    executeMigration = (migration, cb) ->
         connection.query migration.sql, (err, result) ->
             return cb err if err?
-            addVersionToSchemaInfo connection, migration.version, (err) ->
+            addVersionToSchemaInfo migration.version, (err) ->
                 return cb err if err?
                 results.push "added #{migration.description} to database"
                 cb null
 
-    executeMigrations = (connection, cb) ->
-        createSchemaInfoTableIfNotExists connection, (err) ->
+    executeMigrations = (cb) ->
+        createSchemaInfoTableIfNotExists (err) ->
             return cb err if err?
             availableSchemas = getAvailableMigrations()
-            getAllAlreadyExecutedMigrations connection, (err, executedVersions) ->
+            getAllAlreadyExecutedMigrations (err, executedVersions) ->
                 return cb err if err?
                 newMigrations = getNewMigrations availableSchemas, executedVersions
 
                 withSql = newMigrations.map addSqlToMigration
 
-                async.forEach withSql, ((migration, cb) -> executeMigration connection, migration, cb), (err) ->
+                async.forEach withSql, ((migration, cb) -> executeMigration migration, cb), (err) ->
                     return console.error err if err?
                     cb null
 
-    pg.connect connString, (err, connection) ->
+    executeMigrations (err) ->
         return cb err if err?
-        throw new Error err if err?
-        executeMigrations connection, (err) ->
-            pg.end()
-            return cb err if err?
-            cb null, results
+        cb null, results

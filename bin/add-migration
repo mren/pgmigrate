@@ -1,0 +1,16 @@
+#!/usr/bin/env coffee
+
+fs = require 'fs'
+
+moment = require 'moment'
+
+migrationName = process.argv[2]
+
+if not migrationName?
+    console.log "Usage: script/add-migration {migration-name}"
+    return
+
+time = moment().format('YYYYMMDDHHmmss')
+filepath = "schema/#{time}-#{migrationName}.sql"
+fs.writeFileSync filepath, ""
+console.log filepath

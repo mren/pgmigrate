@@ -1,0 +1,20 @@
+#!/usr/bin/env coffee
+
+pg = require 'pg.js'
+
+migrate = require '../migrate'
+
+databaseUrl = process.env.DATABASE_URL
+
+unless databaseUrl
+    console.log 'No DATABASE_URL found in environment.'
+    return
+
+pg.connect databaseUrl, (err, client, done) ->
+    throw err if err?
+    migrate 'schema', client, (err, result) ->
+        console.error err if err?
+        console.log result if result?
+        console.log 'done'
+        done()
+        pg.end()

@@ -1,16 +1,21 @@
-#!/usr/bin/env coffee
+#!/usr/bin/env node
 
-fs = require 'fs'
+fs = require('fs');
 
-moment = require 'moment'
+moment = require('moment');
 
 migrationName = process.argv[2]
 
-if not migrationName?
-    console.log "Usage: script/add-migration {migration-name}"
-    return
+if(!fs.existsSync('schema/')) {
+  fs.mkdirSync('schema');
+}
 
-time = moment().format('YYYYMMDDHHmmss')
-filepath = "schema/#{time}-#{migrationName}.sql"
-fs.writeFileSync filepath, ""
-console.log filepath
+if(!migrationName) {
+    console.log('Usage: script/add-migration {migration-name}');
+    return;
+}
+
+time = moment().format('YYYYMMDDHHmmss');
+filepath = "schema/" + time + '-' + migrationName + '.sql';
+fs.writeFileSync(filepath, "");
+console.log(filepath);

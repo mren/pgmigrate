@@ -1,20 +1,29 @@
-#!/usr/bin/env coffee
+#!/usr/bin/env node
 
-pg = require 'pg.js'
+pg = require('pg.js');
 
-migrate = require '../migrate'
+migrate = require('../migrate');
 
-databaseUrl = process.env.DATABASE_URL
+databaseUrl = process.env.DATABASE_URL;
 
-unless databaseUrl
-    console.log 'No DATABASE_URL found in environment.'
-    return
+if(!databaseUrl) {
+    console.log('No DATABASE_URL found in environment.');
+    return;
+}
 
-pg.connect databaseUrl, (err, client, done) ->
-    throw err if err?
-    migrate 'schema', client, (err, result) ->
-        console.error err if err?
-        console.log result if result?
-        console.log 'done'
+pg.connect(databaseUrl, function(err, client, done) {
+    if(err) {
+      throw err;
+    }
+    migrate('schema', client, function(err, result) {
+        if(err) {
+          console.error(err);
+        }
+        if(results) {
+          console.log(result);
+          console.log('done');
+        }
         done()
         pg.end()
+    });
+});

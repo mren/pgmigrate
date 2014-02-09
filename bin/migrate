@@ -15,12 +15,12 @@ pg.connect(databaseUrl, function(err, client, done) {
     if(err) {
       throw err;
     }
-    migrate('schema', client, function(err, result) {
+    migrate('schema', client, function(err, results) {
         if(err) {
           console.error(err);
         }
         if(results) {
-          console.log(result);
+          console.log(results);
           console.log('done');
         }
         done()

@@ -1,7 +1,7 @@
 {
     "author": "Mark Engel <mark@engel.io> (http://www.engel.io)",
     "name": "megrim",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "main": "migrate",
     "repository": {
         "type": "git",

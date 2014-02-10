@@ -4,6 +4,21 @@ Migration Tool for Postgres databases in node.js
 
 # usage
 
+`node_modules/.bin` contains `add-migration` and `migrate`.
+
+## add-migration
+
+`add-migration <name>` will add a migration file to `schema/$timestamp-$name.sql`.
+Custom SQl can be written into this file.
+
+## migrate
+
+`migrate` will execute all migrations which are not yet in the database.
+Therefore `migrate` will look at the environment variable `DATABASE_URL`.
+
+
+## Technical Implementaiton
+
 ```coffeescript
 megrim = require 'megrim'
 megrim path_to_migrations, psql_connection, (err, result) ->
@@ -21,3 +36,4 @@ YYYYMMDDHHMMSS-description.sql
 ```
 
 
+License MIT

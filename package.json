@@ -1,7 +1,7 @@
 {
     "author": "Mark Engel <mark@engel.io> (http://www.engel.io)",
     "name": "megrim",
-    "version": "1.1.3",
+    "version": "1.1.4",
     "main": "migrate",
     "repository": {
         "type": "git",
@@ -26,5 +26,12 @@
     },
     "peerDependencies": {
         "pg.js": "*"
+    },
+    "devDependencies": {
+        "coffee-script": "1.7.1"
+    },
+    "scripts": {
+        "prepublish": "coffee --bare --compile *.coffee",
+        "postpublish": "rm *.js"
     }
 }

@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
-pg = require('pg.js');
+var fs = require('fs');
 
-migrate = require('../migrate');
+var pg = require('pg.js');
 
-databaseUrl = process.env.DATABASE_URL;
+var migrate = require('../migrate');
+
+var databaseUrl = process.env.DATABASE_URL;
+
+var isSync = process.argv[2] === '--sync';
 
 if(!databaseUrl) {
     console.log('No DATABASE_URL found in environment.');
@@ -15,15 +19,29 @@ pg.connect(databaseUrl, function(err, client, done) {
     if(err) {
       throw err;
     }
-    migrate('schema', client, function(err, results) {
-        if(err) {
-          console.error(err);
-        }
-        if(results) {
-          console.log(results);
-          console.log('done');
-        }
-        done()
-        pg.end()
-    });
+
+    var startMigration = function() {
+      migrate('schema', client, function(err, results) {
+          if(err) {
+            console.error(err);
+          }
+          if(results) {
+            console.log(results);
+            console.log('done');
+          }
+          done()
+          pg.end()
+      });
+    };
+
+    if (isSync) {
+      var path = __dirname + '/../share/drop-all-tables.sql'
+      var syncQuery = fs.readFileSync(path, 'utf-8');
+      client.query(syncQuery, function(err, result) {
+        if (err) throw err;
+        startMigration();
+      });
+    } else {
+      startMigration();
+    }
 });

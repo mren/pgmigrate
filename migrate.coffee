@@ -70,10 +70,7 @@ module.exports = (path, connection, cb = ->) ->
 
                 withSql = newMigrations.map addSqlToMigration
 
-                async.forEach withSql, ((migration, cb) -> executeMigration migration, cb), (err) ->
-                    return console.error err if err?
-                    cb null
+                async.forEach withSql, executeMigration, cb
 
     executeMigrations (err) ->
-        return cb err if err?
-        cb null, results
+        cb err, results

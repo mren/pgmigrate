@@ -1,112 +1,99 @@
 var fs = require('fs');
 
-var async = require('async');
-var Mesa = require('mesa');
+var Promise = require('bluebird');
+var mesa = require('mesa');
 var _ = require('underscore');
 
-function migrate(path, connection, isSync, cb) {
+var readFile = Promise.promisify(fs.readFile);
+var readdir = Promise.promisify(fs.readdir);
 
-  var mesa = Mesa
-    .connection(connection)
+function migrate(path, connection, isSync) {
+
+  var query = Promise.promisify(connection.query, connection);
+
+  var schemaInfo = mesa
+    .setConnection(connection)
     .table('schema_info')
-    .attributes(['version'])
+    .allow(['version'])
     .returning('version');
 
-  var results = [];
+  return Promise.resolve()
+    .then(isSync ? syncDatabase : null)
+    .then(createSchemaInfoTableIfNotExists)
+    .then(executeMigrations)
+    .map(function(migration) {
+      return 'Added ' + migration.description + ' to database.';
+    });
 
-  function getSchemaVersion(cb) {
-    return mesa.find(cb);
+  function syncDatabase() {
+    var dropPath = __dirname + '/share/drop-all-tables.sql'
+    return readFile(dropPath, 'utf8').then(query);
   }
 
-  function createSchemaInfoTableIfNotExists(cb) {
+  function createSchemaInfoTableIfNotExists() {
     var sql = 'CREATE TABLE IF NOT EXISTS ' +
       'schema_info (version bigint NOT NULL UNIQUE);';
-    return connection.query(sql, cb);
+    return query(sql);
   }
 
-  function addVersionToSchemaInfo(version, cb) {
-    return mesa.insert({
-      version: version
-    }, cb);
-  }
-
-  function parseSchemaFileName(filename) {
-    var date = filename.split('-').shift();
-    var description = filename.substr(date.length + 1).split('.').shift();
-    return {
-      description: description,
-      extension: filename.split('.').pop(),
-      filename: filename,
-      version: Number(date),
-    };
-  }
-
-  function isValidSchemaFile(schemaFile) {
-    var isSqlExtension = schemaFile.extension === 'sql';
-    var correctLength = schemaFile.version.toString().length === 14;
-    return isSqlExtension && !isNaN(schemaFile.version) && correctLength;
+  function executeMigrations() {
+    return Promise.all([
+      getAvailableMigrations(),
+      getAllAlreadyExecutedMigrations(),
+    ])
+    .spread(getNewMigrations)
+    .map(addSqlToMigration)
+    .map(executeMigration);
   }
 
   function getAvailableMigrations() {
-    var filenames = fs.readdirSync(path);
-    var availableSchemas = filenames.map(parseSchemaFileName);
-    var validSchemas = availableSchemas.filter(isValidSchemaFile);
-    return _.sortBy(validSchemas, function(schema) {
-      return schema.version;
-    });
+    return readdir(path)
+      .map(parseSchemaFileName)
+      .filter(isValidSchemaFile)
+      .then(_.partial(_.sortBy, _, 'version'));
+
+    function parseSchemaFileName(filename) {
+      var date = filename.split('-').shift();
+      var description = filename.substr(date.length + 1).split('.').shift();
+      return {
+        description: description,
+        extension: filename.split('.').pop(),
+        filename: filename,
+        version: Number(date),
+      };
+    }
+
+    function isValidSchemaFile(schemaFile) {
+      var isSqlExtension = schemaFile.extension === 'sql';
+      var correctLength = schemaFile.version.toString().length === 14;
+      return isSqlExtension && !isNaN(schemaFile.version) && correctLength;
+    }
   }
 
-  function getAllAlreadyExecutedMigrations(cb) {
-    getSchemaVersion(function(err, schemas) {
-      cb(err, _.pluck(schemas, 'version'));
-    });
+  function getAllAlreadyExecutedMigrations() {
+    return schemaInfo.find()
+      .then(_.partial(_.pluck, _, 'version'));
   }
+
   function getNewMigrations(availableSchemas, executedVersions) {
     return availableSchemas.filter(function(schemaFile) {
-      return !_.include(executedVersions, '' + schemaFile.version);
+      return !_.include(executedVersions, schemaFile.version.toString());
     });
   }
+
   function addSqlToMigration(migration) {
-    migration.sql = fs.readFileSync(path + '/' + migration.filename, 'utf8');
-    return migration;
-  }
-
-  function executeMigration(migration, cb) {
-    connection.query(migration.sql, function(err, result) {
-      if (err) return cb(err);
-      addVersionToSchemaInfo(migration.version, function(err) {
-        if (err) return cb(err);
-        results.push('Added ' + migration.description + ' to database.');
-        return cb();
+    return readFile(path + '/' + migration.filename, 'utf8')
+      .then(function(sql) {
+        return _.extend({sql: sql}, migration);
       });
-    });
   }
 
-  function executeMigrations(cb) {
-    createSchemaInfoTableIfNotExists(function(err) {
-      if (err) return cb(err);
-      var availableSchemas = getAvailableMigrations();
-      getAllAlreadyExecutedMigrations(function(err, oldMigrations) {
-        if (err) return cb(err);
-        var newMigrations = getNewMigrations(availableSchemas, oldMigrations);
-        var withSql = newMigrations.map(addSqlToMigration);
-        async.forEach(withSql, executeMigration, function(err) {
-          cb(err, err ? null : results);
-        });
-      });
-    });
+  function executeMigration(migration) {
+    return query(migration.sql)
+      .tap(function() {
+        return schemaInfo.insert({version: migration.version});
+      })
+      .return(migration);
   }
-
-  if (isSync) {
-    var dropPath = __dirname + '/share/drop-all-tables.sql'
-    var syncQuery = fs.readFileSync(dropPath, 'utf-8');
-    connection.query(syncQuery, function(err, result) {
-      if (err) throw err;
-      executeMigrations(cb);
-    });
-  } else {
-    executeMigrations(cb);
-  }
-
 }
 module.exports = migrate;

@@ -33,5 +33,5 @@
     "postpublish": "rm *.js",
     "prepublish": "coffee --bare --compile *.coffee"
   },
-  "version": "1.1.5"
+  "version": "1.2.0"
 }

@@ -27,7 +27,6 @@ pg.connect(databaseUrl, function(err, client, done) {
           }
           if(results) {
             console.log(results);
-            console.log('done');
           }
           done()
           pg.end()

@@ -28,8 +28,8 @@ pg.connect(databaseUrl, function(err, client, done) {
           if(results) {
             console.log(results);
           }
-          done()
-          pg.end()
+          done();
+          pg.end();
       });
     };
 

@@ -1,37 +1,37 @@
 {
-    "author": "Mark Engel <mark@engel.io> (http://www.engel.io)",
-    "name": "megrim",
-    "version": "1.1.5",
-    "main": "migrate",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/mren/megrim.git"
-    },
-    "licenses": {
-        "type": "MIT",
-        "url": "git://github.com/mren/megrim/LICENSE"
-    },
-    "engines": {
-        "node": "0.10.x"
-    },
-    "bin": {
-        "add-migration": "./bin/add-migration",
-        "migrate": "./bin/migrate"
-    },
-    "dependencies": {
-        "underscore": "1.5.2",
-        "async": "0.2.9",
-        "mesa": "0.7.0",
-        "moment": "2.3.0"
-    },
-    "peerDependencies": {
-        "pg.js": "*"
-    },
-    "devDependencies": {
-        "coffee-script": "1.7.1"
-    },
-    "scripts": {
-        "prepublish": "coffee --bare --compile *.coffee",
-        "postpublish": "rm *.js"
-    }
+  "author": "Mark Engel <mark@engel.io> (http://www.engel.io)",
+  "bin": {
+    "add-migration": "./bin/add-migration",
+    "migrate": "./bin/migrate"
+  },
+  "dependencies": {
+    "async": "0.2.9",
+    "mesa": "0.7.0",
+    "moment": "2.3.0",
+    "underscore": "1.5.2"
+  },
+  "devDependencies": {
+    "coffee-script": "1.7.1"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "licenses": {
+    "type": "MIT",
+    "url": "git://github.com/mren/megrim/LICENSE"
+  },
+  "main": "migrate",
+  "name": "megrim",
+  "peerDependencies": {
+    "pg.js": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mren/megrim.git"
+  },
+  "scripts": {
+    "postpublish": "rm *.js",
+    "prepublish": "coffee --bare --compile *.coffee"
+  },
+  "version": "1.1.5"
 }

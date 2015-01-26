@@ -23,7 +23,7 @@
   "main": "migrate",
   "name": "megrim",
   "peerDependencies": {
-    "pg.js": "*"
+    "pg": "*"
   },
   "repository": {
     "type": "git",

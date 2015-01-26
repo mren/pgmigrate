@@ -73,5 +73,4 @@ module.exports = (path, connection, cb = ->) ->
                 async.forEach withSql, executeMigration, cb
 
     executeMigrations (err) ->
-        return cb err if err?
-        cb null, results
+        cb err, results

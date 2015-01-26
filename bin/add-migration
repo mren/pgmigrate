@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-fs = require('fs');
+var fs = require('fs');
 
-moment = require('moment');
+var moment = require('moment');
 
-migrationName = process.argv[2]
+var migrationName = process.argv[2]
 
 if(!fs.existsSync('schema/')) {
   fs.mkdirSync('schema');
@@ -15,7 +15,7 @@ if(!migrationName) {
     return;
 }
 
-time = moment().format('YYYYMMDDHHmmss');
-filepath = "schema/" + time + '-' + migrationName + '.sql';
-fs.writeFileSync(filepath, "");
+var time = moment().format('YYYYMMDDHHmmss');
+var filepath = 'schema/' + time + '-' + migrationName + '.sql';
+fs.writeFileSync(filepath, '');
 console.log(filepath);

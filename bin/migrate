@@ -10,28 +10,13 @@ var databaseUrl = process.env.DATABASE_URL;
 
 var isSync = process.argv[2] === '--sync';
 
-if(!databaseUrl) {
+if (!databaseUrl) {
     console.log('No DATABASE_URL found in environment.');
     return;
 }
 
 pg.connect(databaseUrl, function(err, client, done) {
-    if(err) {
-      throw err;
-    }
-
-    var startMigration = function() {
-      migrate('schema', client, function(err, results) {
-          if(err) {
-            console.error(err);
-          }
-          if(results) {
-            console.log(results);
-          }
-          done();
-          pg.end();
-      });
-    };
+    if (err) throw err;
 
     if (isSync) {
       var path = __dirname + '/../share/drop-all-tables.sql'
@@ -42,5 +27,18 @@ pg.connect(databaseUrl, function(err, client, done) {
       });
     } else {
       startMigration();
+    }
+
+    function startMigration() {
+      migrate('schema', client, function(err, results) {
+          if (err) {
+            console.error(err);
+          }
+          if (results) {
+            console.log(results);
+          }
+          done();
+          pg.end();
+      });
     }
 });

@@ -4,7 +4,7 @@ var async = require('async');
 var Mesa = require('mesa');
 var _ = require('underscore');
 
-function migrate(path, connection, cb) {
+function migrate(path, connection, isSync, cb) {
 
   var mesa = Mesa
     .connection(connection)
@@ -97,6 +97,16 @@ function migrate(path, connection, cb) {
     });
   }
 
-  executeMigrations(cb);
+  if (isSync) {
+    var dropPath = __dirname + '/share/drop-all-tables.sql'
+    var syncQuery = fs.readFileSync(dropPath, 'utf-8');
+    connection.query(syncQuery, function(err, result) {
+      if (err) throw err;
+      executeMigrations(cb);
+    });
+  } else {
+    executeMigrations(cb);
+  }
+
 }
 module.exports = migrate;

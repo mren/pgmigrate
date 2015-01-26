@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-
 var pg = require('pg');
 
 var migrate = require('../migrate');
@@ -18,27 +16,14 @@ if (!databaseUrl) {
 pg.connect(databaseUrl, function(err, client, done) {
     if (err) throw err;
 
-    if (isSync) {
-      var path = __dirname + '/../share/drop-all-tables.sql'
-      var syncQuery = fs.readFileSync(path, 'utf-8');
-      client.query(syncQuery, function(err, result) {
-        if (err) throw err;
-        startMigration();
-      });
-    } else {
-      startMigration();
-    }
-
-    function startMigration() {
-      migrate('schema', client, function(err, results) {
-          if (err) {
-            console.error(err);
-          }
-          if (results) {
-            console.log(results);
-          }
-          done();
-          pg.end();
-      });
-    }
+    migrate('schema', client, isSync, function(err, results) {
+      if (err) {
+        console.error(err);
+      }
+      if (results) {
+        console.log(results);
+      }
+      done();
+      pg.end();
+    });
 });

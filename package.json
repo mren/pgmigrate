@@ -10,9 +10,6 @@
     "moment": "2.3.0",
     "underscore": "1.5.2"
   },
-  "devDependencies": {
-    "coffee-script": "1.7.1"
-  },
   "engines": {
     "node": "0.10.x"
   },
@@ -30,8 +27,6 @@
     "url": "git://github.com/mren/megrim.git"
   },
   "scripts": {
-    "postpublish": "rm *.js",
-    "prepublish": "coffee --bare --compile *.coffee"
   },
   "version": "1.2.0"
 }

@@ -37,3 +37,11 @@ YYYYMMDDHHMMSS-description.sql
 
 
 License MIT
+
+## Tests
+
+Prefilled Database -> Sync. Everything empty
+Empty Database - 1 Migration: Expect migration to be happend, plus version file
+Execute Migration twice. Nothing happened?
+Execute Migration with error. Nothing happened
+https://github.com/tschaub/mock-fs

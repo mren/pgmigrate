@@ -28,6 +28,7 @@
     "url": "git://github.com/mren/megrim.git"
   },
   "scripts": {
+    "test": "./test-success.sh && ./test-failure.sh"
   },
   "version": "1.4.0"
 }

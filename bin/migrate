@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-
 var pg = require('pg');
 
 var migrate = require('../migrate');
@@ -10,37 +8,19 @@ var databaseUrl = process.env.DATABASE_URL;
 
 var isSync = process.argv[2] === '--sync';
 
-if(!databaseUrl) {
+if (!databaseUrl) {
     console.log('No DATABASE_URL found in environment.');
     return;
 }
 
 pg.connect(databaseUrl, function(err, client, done) {
-    if(err) {
-      throw err;
-    }
+    if (err) throw err;
 
-    var startMigration = function() {
-      migrate('schema', client, function(err, results) {
-          if(err) {
-            console.error(err);
-          }
-          if(results) {
-            console.log(results);
-          }
-          done();
-          pg.end();
+    migrate('schema', client, isSync)
+      .then(console.log)
+      .catch(console.error)
+      .finally(function() {
+        done();
+        pg.end();
       });
-    };
-
-    if (isSync) {
-      var path = __dirname + '/../share/drop-all-tables.sql'
-      var syncQuery = fs.readFileSync(path, 'utf-8');
-      client.query(syncQuery, function(err, result) {
-        if (err) throw err;
-        startMigration();
-      });
-    } else {
-      startMigration();
-    }
 });

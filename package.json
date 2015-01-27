@@ -5,13 +5,11 @@
     "migrate": "./bin/migrate"
   },
   "dependencies": {
-    "async": "0.2.9",
-    "mesa": "0.7.0",
-    "moment": "2.3.0",
-    "underscore": "1.5.2"
-  },
-  "devDependencies": {
-    "coffee-script": "1.7.1"
+    "async": "0.9.0",
+    "bluebird": "2.9.2",
+    "mesa": "1.0.0-alpha.11",
+    "moment": "2.9.0",
+    "underscore": "1.7.0"
   },
   "engines": {
     "node": "0.10.x"
@@ -30,8 +28,6 @@
     "url": "git://github.com/mren/megrim.git"
   },
   "scripts": {
-    "postpublish": "rm *.js",
-    "prepublish": "coffee --bare --compile *.coffee"
   },
-  "version": "1.2.0"
+  "version": "1.3.0"
 }

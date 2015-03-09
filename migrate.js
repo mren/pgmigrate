@@ -18,7 +18,7 @@ function migrate(path, connection, isSync) {
     .returning('version');
 
   return Promise.resolve()
-    .then(isSync ? syncDatabase : null)
+    .then(isSync ? syncDatabase : _.identity)
     .then(createSchemaInfoTableIfNotExists)
     .then(executeMigrations)
     .map(function(migration) {

@@ -18,7 +18,10 @@ pg.connect(databaseUrl, function(err, client, done) {
 
     migrate('schema', client, isSync)
       .then(console.log)
-      .catch(console.error)
+      .catch(function(err) {
+        console.error(err)
+        process.exit(1);
+      })
       .finally(function() {
         done();
         pg.end();

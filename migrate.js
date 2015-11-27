@@ -59,7 +59,7 @@ function migrate(path, connection, isSync) {
         description: description,
         extension: filename.split('.').pop(),
         filename: filename,
-        version: Number(date),
+        version: date,
       };
     }
 
@@ -91,7 +91,8 @@ function migrate(path, connection, isSync) {
   function executeMigration(migration) {
     return query(migration.sql)
       .tap(function() {
-        return schemaInfo.insert({version: migration.version});
+        var isHook = _.contains(['00000000000000', '99999999999999'], migration.version);
+        return isHook ? null : schemaInfo.insert({version: migration.version});
       })
       .return(migration);
   }

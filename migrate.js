@@ -9,7 +9,7 @@ var readdir = bluebird.promisify(fs.readdir);
 
 function migrate(path, connection, isSync) {
 
-  var query = bluebird.promisify(connection.query, connection);
+  var query = bluebird.promisify(connection.query, {context: connection});
 
   var schemaInfo = mesa
     .setConnection(connection)

@@ -1,15 +1,15 @@
 var fs = require('fs');
 
-var Promise = require('bluebird');
+var bluebird = require('bluebird');
 var mesa = require('mesa');
 var _ = require('underscore');
 
-var readFile = Promise.promisify(fs.readFile);
-var readdir = Promise.promisify(fs.readdir);
+var readFile = bluebird.promisify(fs.readFile);
+var readdir = bluebird.promisify(fs.readdir);
 
 function migrate(path, connection, isSync) {
 
-  var query = Promise.promisify(connection.query, connection);
+  var query = bluebird.promisify(connection.query, connection);
 
   var schemaInfo = mesa
     .setConnection(connection)
@@ -17,7 +17,7 @@ function migrate(path, connection, isSync) {
     .allow(['version'])
     .returning('version');
 
-  return Promise.resolve()
+  return bluebird.resolve()
     .then(isSync ? syncDatabase : _.identity)
     .then(createSchemaInfoTableIfNotExists)
     .then(executeMigrations)
@@ -37,7 +37,7 @@ function migrate(path, connection, isSync) {
   }
 
   function executeMigrations() {
-    return Promise.all([
+    return bluebird.all([
       getAvailableMigrations(),
       getAllAlreadyExecutedMigrations(),
     ])

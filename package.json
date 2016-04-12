@@ -1,8 +1,8 @@
 {
   "author": "Mark Engel <mark@engel.io> (http://www.engel.io)",
   "bin": {
-    "add-migration": "./bin/add-migration",
-    "migrate": "./bin/migrate"
+    "add-migration": "./add-migration.js",
+    "migrate": "./migrate-cli.js"
   },
   "dependencies": {
     "bluebird": "3.3.4",

@@ -2,7 +2,7 @@
 
 var pg = require('pg');
 
-var migrate = require('../migrate');
+var migrate = require('./migrate');
 
 var databaseUrl = process.env.DATABASE_URL;
 

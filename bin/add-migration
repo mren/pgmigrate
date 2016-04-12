@@ -2,8 +2,6 @@
 
 var fs = require('fs');
 
-var moment = require('moment');
-
 var migrationName = process.argv[2]
 
 if(!fs.existsSync('schema/')) {
@@ -15,7 +13,7 @@ if(!migrationName) {
     return;
 }
 
-var time = moment().format('YYYYMMDDHHmmss');
+var time = new Date().toISOString().slice(0, -5).replace(/[-:T]/g, '');
 var filepath = 'schema/' + time + '-' + migrationName + '.sql';
 fs.writeFileSync(filepath, '');
 console.log(filepath);

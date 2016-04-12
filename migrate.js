@@ -26,7 +26,7 @@ function migrate(path, connection, isSync) {
     });
 
   function syncDatabase() {
-    var dropPath = __dirname + '/share/drop-all-tables.sql'
+    var dropPath = __dirname + '/share/drop-all-tables.sql';
     return readFile(dropPath, 'utf8').then(query);
   }
 

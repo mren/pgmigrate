@@ -1,0 +1,33 @@
+{
+  "author": "mren",
+  "bin": {
+    "add-migration": "./add-migration.js",
+    "migrate": "./cli.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "3.7.0",
+    "eslint-config-airbnb-base": "8.0.0",
+    "eslint-plugin-import": "1.16.0",
+    "mocha": "3.1.0",
+    "mock-fs": "3.11.0"
+  },
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "license": "MIT",
+  "main": "migrate",
+  "name": "pgmigrate",
+  "peerDependencies": {
+    "pg": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mren/pgmigrate.git"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "npm run lint && mocha --recursive"
+  },
+  "version": "1.0.0"
+}

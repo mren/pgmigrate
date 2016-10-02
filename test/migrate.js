@@ -1,8 +1,7 @@
 const assert = require('assert');
 
-const pg = require('pg');
-// eslint-disable-next-line import/no-extraneous-dependencies
 const mockFs = require('mock-fs');
+const pg = require('pg');
 
 const migrate = require('../migrate');
 

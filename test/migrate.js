@@ -2,6 +2,7 @@ const assert = require('assert');
 
 const mockFs = require('mock-fs');
 const pg = require('pg');
+const sinon = require('sinon');
 
 const migrate = require('../migrate');
 
@@ -40,6 +41,21 @@ describe('migrate', () => {
       ]))
       .then(() => mockFs.restore());
   });
+
+  it('should not migrate an invalid schema', () => {
+    mockFs({
+      path: {
+        '2016-01-01T17:00:00Z-name.sql': 'create invalid sql',
+      },
+    });
+    return migrate('path', getConnection)
+      .then(() => assert(false))
+      .catch((err) => {
+        assert.strictEqual(err.message, 'syntax error at or near "invalid"');
+        mockFs.restore();
+      });
+  });
+
 
   it('should be idempotent', () => {
     mockFs({ path: {
@@ -80,5 +96,25 @@ describe('migrate', () => {
       .then(() => client.query('SELECT * FROM test'))
       .then(result => assert.deepEqual(result.rows, []))
       .then(() => mockFs.restore());
+  });
+
+  it('should call done in happy case', () => {
+    const done = sinon.stub();
+    mockFs({ path: {
+    } });
+    const getConnectionStub = cb => cb(null, { query: () => Promise.resolve({ rows: [] }) }, done);
+    return migrate('path', getConnectionStub)
+      .then(() => mockFs.restore())
+      .then(() => sinon.assert.calledOnce(done));
+  });
+
+  it('should call done in error case', () => {
+    const done = sinon.stub();
+    mockFs({ path: {
+    } });
+    const getConnectionStub = cb => cb(null, { query: () => Promise.reject(new Error()) }, done);
+    return migrate('path', getConnectionStub)
+      .then(() => assert(false))
+      .catch(() => sinon.assert.calledOnce(done));
   });
 });

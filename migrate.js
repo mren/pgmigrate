@@ -9,7 +9,12 @@ function migrate(path, connection, isSync) {
       if (err) {
         return defer.reject(err);
       }
-      return defer.resolve(migrate(path, client, isSync).then(() => done()));
+      return defer.resolve(migrate(path, client, isSync)
+        .then(() => done())
+        .catch((migrateError) => {
+          done();
+          return Promise.reject(migrateError);
+        }));
     });
     return defer.promise;
   }

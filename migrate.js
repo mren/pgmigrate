@@ -10,7 +10,10 @@ function migrate(path, connection, isSync) {
         return defer.reject(err);
       }
       return defer.resolve(migrate(path, client, isSync)
-        .then(() => done())
+        .then((result) => {
+          done();
+          return result;
+        })
         .catch((migrateError) => {
           done();
           return Promise.reject(migrateError);

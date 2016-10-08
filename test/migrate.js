@@ -32,6 +32,12 @@ describe('migrate', () => {
       'path/2016-01-01T19:00:00Z-another-name.sql': 'INSERT INTO test (value) VALUES (\'value\');',
     });
     return migrate('path', getConnection)
+      .then((result) => {
+        assert.deepStrictEqual(result, [
+          'Added 2016-01-01T17:00:00Z-name.sql to database.',
+          'Added 2016-01-01T19:00:00Z-another-name.sql to database.',
+        ]);
+      })
       .then(() => client.query('SELECT * FROM test'))
       .then(result => assert.deepEqual(result.rows, [{ value: 'value' }]))
       .then(() => client.query('SELECT * FROM schema_info'))

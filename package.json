@@ -21,7 +21,7 @@
   "main": "migrate",
   "name": "pgmigrate",
   "peerDependencies": {
-    "pg": "*"
+    "pg": ">=5.1.0"
   },
   "repository": {
     "type": "git",

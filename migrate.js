@@ -4,22 +4,23 @@ const dropSql = fs.readFileSync(`${__dirname}/share/drop-all-tables.sql`, 'utf8'
 
 function migrate(path, connection, isSync) {
   if (connection instanceof Function) {
-    const defer = Promise.defer();
-    connection((err, client, done) => {
-      if (err) {
-        return defer.reject(err);
-      }
-      return defer.resolve(migrate(path, client, isSync)
-        .then((result) => {
-          done();
-          return result;
-        })
-        .catch((migrateError) => {
-          done();
-          return Promise.reject(migrateError);
-        }));
+    return new Promise((resolve, reject) => {
+      connection((err, client, done) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(migrate(path, client, isSync)
+          .then((result) => {
+            done();
+            return result;
+          })
+          .catch((migrateError) => {
+            done();
+            return Promise.reject(migrateError);
+          })
+        );
+      });
     });
-    return defer.promise;
   }
 
   const executeMigration = migration => connection.query(migration.sql)

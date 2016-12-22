@@ -22,20 +22,19 @@ function migrate(path, connection, isSync) {
       });
     });
   }
+  const hooks = [
+    '0000-00-00T00:00:00:000Z',
+    '9999-99-99T99:99:99:999Z',
+  ];
+  const isHook = migration => hooks.some(hook => migration.filename.indexOf(hook) === 0);
 
-  const executeMigration = migration => connection.query(migration.sql)
-    .then(() => {
-      const preHook = '0000-00-00T00:00:00:000Z';
-      if (migration.filename.indexOf(preHook) === 0) {
-        return null;
-      }
-      const postHook = '9999-99-99T99:99:99:999Z';
-      if (migration.filename.indexOf(postHook) === 0) {
-        return null;
-      }
-      const sql = 'INSERT INTO schema_info (version) VALUES ($1)';
-      return connection.query(sql, [migration.filename]);
-    })
+  const schemaSql = 'INSERT INTO schema_info (version) VALUES ($1)';
+  const executeMigration = migration => Promise.resolve()
+    .then(() => connection.query('BEGIN'))
+    .then(() => connection.query(migration.sql))
+    .then(() => (isHook(migration) ? null : connection.query(schemaSql, [migration.filename])))
+    .then(() => connection.query('COMMIT'))
+    .catch(err => connection.query('ROLLBACK').then(() => Promise.reject(err)))
     .then(() => migration);
 
   const endsWith = (str, suffix) => str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -57,11 +56,11 @@ function migrate(path, connection, isSync) {
     .then(results => Promise.all(results.map(loadSql)))
     .then(results => Promise.all(results.map(executeMigration)));
 
-  const schemaSql = 'CREATE TABLE IF NOT EXISTS schema_info (version text not null unique)';
+  const schemaTableSql = 'CREATE TABLE IF NOT EXISTS schema_info (version text not null unique)';
 
   return Promise.resolve()
     .then(isSync ? connection.query(dropSql) : Function)
-    .then(() => connection.query(schemaSql))
+    .then(() => connection.query(schemaTableSql))
     .then(executeMigrations)
     .then(migrations => migrations.map(migration => `Added ${migration.filename} to database.`));
 }

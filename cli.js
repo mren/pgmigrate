@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const pg = require('pg');
+const pgConnectionString = require('pg-connection-string');
 
 const migrate = require('./migrate');
 
@@ -12,15 +13,12 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-const getConnection = cb => pg.connect(databaseUrl, cb);
+const config = pgConnectionString.parse(databaseUrl);
 
-migrate('schema', getConnection, isSync)
-  .then((result) => {
-    console.log(result);
-    pg.end();
-  })
+
+migrate('schema', new pg.Pool(config), isSync)
+  .then(console.log)
   .catch((err) => {
     console.error(err);
-    pg.end();
     process.exit(1);
   });

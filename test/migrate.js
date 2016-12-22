@@ -2,26 +2,17 @@ const assert = require('assert');
 
 const mockFs = require('mock-fs');
 const pg = require('pg');
-const sinon = require('sinon');
+const pgConnectionString = require('pg-connection-string');
 
 const migrate = require('../migrate');
 
 assert(process.env.DATABASE_URL, 'Should have a DATABASE_URL.');
 
+const config = pgConnectionString.parse(process.env.DATABASE_URL);
+
 describe('migrate', () => {
-  const getConnection = cb => pg.connect(process.env.DATABASE_URL, cb);
-  // eslint-disable-next-line no-var
-  var client;
-
-  beforeEach('get postgres connection', (done) => {
-    getConnection((err, pgClient) => {
-      client = pgClient;
-      done(err);
-    });
-  });
-
   beforeEach('reset database', () =>
-    client.query('DROP TABLE IF EXISTS test, schema_info')
+    new pg.Pool(config).query('DROP TABLE IF EXISTS test, schema_info')
   );
 
   afterEach(mockFs.restore);
@@ -31,16 +22,16 @@ describe('migrate', () => {
       'path/2016-01-01T17:00:00Z-name.sql': 'CREATE TABLE test (value TEXT);',
       'path/2016-01-01T19:00:00Z-another-name.sql': 'INSERT INTO test (value) VALUES (\'value\');',
     });
-    return migrate('path', getConnection)
+    return migrate('path', new pg.Pool(config))
       .then((result) => {
         assert.deepStrictEqual(result, [
           'Added 2016-01-01T17:00:00Z-name.sql to database.',
           'Added 2016-01-01T19:00:00Z-another-name.sql to database.',
         ]);
       })
-      .then(() => client.query('SELECT * FROM test'))
+      .then(() => new pg.Pool(config).query('SELECT * FROM test'))
       .then(result => assert.deepEqual(result.rows, [{ value: 'value' }]))
-      .then(() => client.query('SELECT * FROM schema_info'))
+      .then(() => new pg.Pool(config).query('SELECT * FROM schema_info'))
       .then(result => assert.deepEqual(result.rows, [
         { version: '2016-01-01T17:00:00Z-name.sql' },
         { version: '2016-01-01T19:00:00Z-another-name.sql' },
@@ -51,7 +42,7 @@ describe('migrate', () => {
     mockFs({
       'path/2016-01-01T17:00:00Z-name.sql': 'create invalid sql',
     });
-    return migrate('path', getConnection)
+    return migrate('path', new pg.Pool(config))
       .then(() => assert(false))
       .catch(err => assert.strictEqual(err.message, 'syntax error at or near "invalid"'));
   });
@@ -60,8 +51,8 @@ describe('migrate', () => {
     mockFs({
       'path/20000000000000-name.sql': 'CREATE TABLE test (value TEXT);',
     });
-    return migrate('path', getConnection)
-      .then(() => migrate('path', getConnection));
+    return migrate('path', new pg.Pool(config))
+      .then(() => migrate('path', new pg.Pool(config)));
   });
 
   it('should allow hooks', () => {
@@ -70,10 +61,10 @@ describe('migrate', () => {
       'path/2016-01-01T00:00:00:000Z-name.sql': 'INSERT INTO test (value) VALUES (\'value\')',
       'path/9999-99-99T99:99:99:999Z-posthook.sql': 'INSERT INTO test (value) VALUES (\'post\')',
     });
-    return client.query('CREATE TABLE test (value TEXT)')
-      .then(() => migrate('path', getConnection))
-      .then(() => migrate('path', getConnection))
-      .then(() => client.query('SELECT * FROM test'))
+    return new pg.Pool(config).query('CREATE TABLE test (value TEXT)')
+      .then(() => migrate('path', new pg.Pool(config)))
+      .then(() => migrate('path', new pg.Pool(config)))
+      .then(() => new pg.Pool(config).query('SELECT * FROM test'))
       .then(results => assert.deepEqual(results.rows, [
         { value: 'pre' },
         { value: 'value' },
@@ -87,27 +78,10 @@ describe('migrate', () => {
     mockFs({
       'path/20000000000000-name.sql': 'CREATE TABLE test (value TEXT);',
     });
-    return migrate('path', getConnection)
-      .then(() => client.query('INSERT INTO test (value) VALUES (\'value\')'))
-      .then(() => migrate('path', getConnection, true))
-      .then(() => client.query('SELECT * FROM test'))
-      .then(result => assert.deepEqual(result.rows, []));
-  });
-
-  it('should call done in happy case', () => {
-    const done = sinon.stub();
-    mockFs({ path: {} });
-    const getConnectionStub = cb => cb(null, { query: () => Promise.resolve({ rows: [] }) }, done);
-    return migrate('path', getConnectionStub)
-      .then(() => sinon.assert.calledOnce(done));
-  });
-
-  it('should call done in error case', () => {
-    const done = sinon.stub();
-    mockFs({ path: {} });
-    const getConnectionStub = cb => cb(null, { query: () => Promise.reject(new Error()) }, done);
-    return migrate('path', getConnectionStub)
-      .then(() => assert(false))
-      .catch(() => sinon.assert.calledOnce(done));
+    return migrate('path', new pg.Pool(config))
+      .then(() => new pg.Pool(config).query('INSERT INTO test (value) VALUES (\'value\')'))
+      .then(() => migrate('path', new pg.Pool(config), true))
+      .then(() => new pg.Pool(config).query('SELECT * FROM test'))
+      .then(result => assert.deepEqual(result.rows, [], 'oh'));
   });
 });

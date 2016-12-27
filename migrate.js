@@ -1,7 +1,17 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const dropSql = fs.readFileSync(`${__dirname}/share/drop-all-tables.sql`, 'utf8');
+const dropSql = `DO $$
+BEGIN
+  create table if not exists foo ();
+  execute (
+    select string_agg('drop table if exists "' || table_name || '" cascade;', '')
+    from information_schema.tables
+    where
+      table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> 'spatial_ref_sys'
+    );
+END
+$$;`;
 
 function migrate(path, pool, isSync) {
   assert(pool.query, 'Should have pool.query. Please use pg.Pool.');

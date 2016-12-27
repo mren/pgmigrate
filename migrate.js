@@ -19,7 +19,7 @@ function migrate(path, pool, isSync) {
     .then(() => (isHook(migration) ? null : client.query(schemaSql, [migration.filename])))
     .then(() => client.query('COMMIT'))
     .catch(err => client.query('ROLLBACK').then(() => Promise.reject(err)))
-    .then(() => client.end())
+    .then(() => client.release())
     .then(() => migration)
   );
 
@@ -54,9 +54,8 @@ function migrate(path, pool, isSync) {
     .then(() => (isSync ? pool.query(dropSql) : null))
     .then(() => pool.query(schemaTableSql))
     .then(executeMigrations)
-    .then((migrations) => {
-      pool.end();
-      return migrations.map(migration => `Added ${migration.filename} to database.`);
-    });
+    .then(migrations => pool.end()
+      .then(() => migrations.map(migration => `Added ${migration.filename} to database.`))
+    );
 }
 module.exports = migrate;

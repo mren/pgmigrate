@@ -29,7 +29,7 @@
     "url": "git://github.com/mren/pgmigrate.git"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint --max-warnings 0 .",
     "mocha": "mocha --recursive",
     "test": "npm run lint && npm run mocha"
   },

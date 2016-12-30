@@ -14,10 +14,13 @@ if (!databaseUrl) {
 }
 
 const config = pgConnectionString.parse(databaseUrl);
+const pool = new pg.Pool(config);
 
-
-migrate('schema', new pg.Pool(config), isSync)
-  .then(console.log)
+migrate('schema', pool, isSync)
+  .then((result) => {
+    console.log(result);
+    return pool.end();
+  })
   .catch((err) => {
     console.error(err);
     process.exit(1);

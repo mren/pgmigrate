@@ -64,8 +64,6 @@ function migrate(path, pool, isSync) {
     .then(() => (isSync ? pool.query(dropSql) : null))
     .then(() => pool.query(schemaTableSql))
     .then(executeMigrations)
-    .then(migrations => pool.end()
-      .then(() => migrations.map(migration => `Added ${migration.filename} to database.`))
-    );
+    .then(migrations => migrations.map(migration => `Added ${migration.filename} to database.`));
 }
 module.exports = migrate;

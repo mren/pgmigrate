@@ -22,7 +22,7 @@
   "main": "migrate",
   "name": "pgmigrate",
   "peerDependencies": {
-    "pg": ">=5.1.0"
+    "pg": ">=6.0.3"
   },
   "repository": {
     "type": "git",

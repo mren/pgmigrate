@@ -12,8 +12,7 @@ const config = pgConnectionString.parse(process.env.DATABASE_URL);
 
 const awaitError = promise => new Promise((resolve, reject) => promise
   .then(() => reject(new Error('No error was thrown.')))
-  .catch(err => resolve(err))
-);
+  .catch(err => resolve(err)));
 
 describe('migrate', () => {
   let pool;
@@ -33,26 +32,25 @@ describe('migrate', () => {
       'path/2016-01-01T17:00:00Z-name.sql': 'CREATE TABLE test (value TEXT);',
       'path/2016-01-01T19:00:00Z-another-name.sql': 'INSERT INTO test (value) VALUES (\'value\');',
     });
-    const result = await migrate('path', new pg.Pool(config));
+    const result = await migrate('path', pool);
     assert.deepStrictEqual(result, [
       'Added 2016-01-01T17:00:00Z-name.sql to database.',
       'Added 2016-01-01T19:00:00Z-another-name.sql to database.',
     ]);
-    const { rows: selectTest } = await new pg.Pool(config).query('SELECT * FROM test');
+    const { rows: selectTest } = await pool.query('SELECT * FROM test');
     assert.deepEqual(selectTest, [{ value: 'value' }]);
-    const { rows: selectSchema } = await new pg.Pool(config).query('SELECT * FROM schema_info');
+    const { rows: selectSchema } = await pool.query('SELECT * FROM schema_info');
     assert.deepEqual(selectSchema, [
       { version: '2016-01-01T17:00:00Z-name.sql' },
       { version: '2016-01-01T19:00:00Z-another-name.sql' },
     ]);
   });
 
-
   it('should not migrate an invalid schema', async () => {
     mockFs({
       'path/2016-01-01T17:00:00Z-name.sql': 'create invalid sql',
     });
-    const error = await awaitError(migrate('path', new pg.Pool(config)));
+    const error = await awaitError(migrate('path', pool));
     assert.strictEqual(error.message, 'syntax error at or near "invalid"');
   });
 
@@ -60,8 +58,8 @@ describe('migrate', () => {
     mockFs({
       'path/20000000000000-name.sql': 'CREATE TABLE test (value TEXT);',
     });
-    await migrate('path', new pg.Pool(config));
-    await migrate('path', new pg.Pool(config));
+    await migrate('path', pool);
+    await migrate('path', pool);
   });
 
   it('should allow hooks', async () => {
@@ -70,10 +68,10 @@ describe('migrate', () => {
       'path/2016-01-01T00:00:00:000Z-name.sql': 'INSERT INTO test (value) VALUES (\'value\')',
       'path/9999-99-99T99:99:99:999Z-posthook.sql': 'INSERT INTO test (value) VALUES (\'post\')',
     });
-    await new pg.Pool(config).query('CREATE TABLE test (value TEXT)');
-    await migrate('path', new pg.Pool(config));
-    await migrate('path', new pg.Pool(config));
-    const { rows: results } = await new pg.Pool(config).query('SELECT * FROM test');
+    await pool.query('CREATE TABLE test (value TEXT)');
+    await migrate('path', pool);
+    await migrate('path', pool);
+    const { rows: results } = await pool.query('SELECT * FROM test');
     assert.deepEqual(results, [
       { value: 'pre' },
       { value: 'value' },
@@ -83,14 +81,14 @@ describe('migrate', () => {
     ]);
   });
 
-  it('should allow to sync database', () => {
+  it('should allow to sync database', async () => {
     mockFs({
       'path/20000000000000-name.sql': 'CREATE TABLE test (value TEXT);',
     });
-    return migrate('path', new pg.Pool(config))
-      .then(() => new pg.Pool(config).query('INSERT INTO test (value) VALUES (\'value\')'))
-      .then(() => migrate('path', new pg.Pool(config), true))
-      .then(() => new pg.Pool(config).query('SELECT * FROM test'))
-      .then(result => assert.deepEqual(result.rows, [], 'oh'));
+    await migrate('path', pool);
+    await pool.query('INSERT INTO test (value) VALUES (\'value\')');
+    await migrate('path', pool, true);
+    const { rows: result } = await pool.query('SELECT * FROM test');
+    assert.deepEqual(result, [], 'oh');
   });
 });

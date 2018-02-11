@@ -17,14 +17,20 @@ const awaitError = promise => new Promise((resolve, reject) => promise
 describe('migrate', () => {
   let pool;
 
-  beforeEach('reset database', async () => {
+  before('get pool', () => {
     pool = new pg.Pool(config);
+  });
+
+  after('destroy pool', async () => {
+    await pool.end();
+  });
+
+  beforeEach('reset database', async () => {
     await pool.query('DROP TABLE IF EXISTS test, schema_info');
   });
 
-  afterEach('cleanup', async () => {
+  afterEach('cleanup', () => {
     mockFs.restore();
-    await pool.end();
   });
 
   it('should migrate a schema', async () => {

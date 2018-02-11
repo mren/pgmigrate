@@ -1,0 +1,13 @@
+version: '3'
+services:
+  app:
+    environment:
+        - DATABASE_URL=postgres://postgres@postgres/postgres
+    image: node:alpine
+    links:
+      - postgres
+    volumes:
+      - .:/app
+    working_dir: /app
+  postgres:
+    image: postgres

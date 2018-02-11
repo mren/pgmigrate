@@ -30,8 +30,7 @@ function migrate(path, pool, isSync) {
     .then(() => client.query('COMMIT'))
     .catch(err => client.query('ROLLBACK').then(() => Promise.reject(err)))
     .then(() => client.release())
-    .then(() => migration)
-  );
+    .then(() => migration));
 
   const endsWith = (str, suffix) => str.indexOf(suffix, str.length - suffix.length) !== -1;
 
@@ -52,9 +51,10 @@ function migrate(path, pool, isSync) {
     .then(results => Promise.all(results.map(loadSql)))
     .then((migrations) => {
       const results = [];
-      migrations.forEach(task =>
-        results.push((results.slice(-1)[0] || Promise.resolve()).then(() => executeMigration(task)))
-      );
+      migrations.forEach((task) => {
+        const elem = (results.slice(-1)[0] || Promise.resolve()).then(() => executeMigration(task));
+        results.push(elem);
+      });
       return Promise.all(results);
     });
 

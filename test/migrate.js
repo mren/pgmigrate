@@ -12,8 +12,7 @@ const config = pgConnectionString.parse(process.env.DATABASE_URL);
 
 describe('migrate', () => {
   beforeEach('reset database', () =>
-    new pg.Pool(config).query('DROP TABLE IF EXISTS test, schema_info')
-  );
+    new pg.Pool(config).query('DROP TABLE IF EXISTS test, schema_info'));
 
   afterEach(mockFs.restore);
 

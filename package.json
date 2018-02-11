@@ -30,7 +30,7 @@
     "url": "git://github.com/mren/pgmigrate.git"
   },
   "scripts": {
-    "lint": "eslint --max-warnings 0 .",
+    "lint": "eslint --max-warnings 0 --report-unused-disable-directives .",
     "mocha": "mocha --recursive",
     "test-pg-versions": "node test/get-all-allowed-pg-versions.js | xargs -I {} -n1 sh -c \"npm install pg@{} && npm run mocha\"",
     "test": "npm run lint && npm run mocha"

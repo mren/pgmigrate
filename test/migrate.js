@@ -97,4 +97,12 @@ describe('migrate', () => {
     const { rows: result } = await pool.query('SELECT * FROM test');
     assert.deepEqual(result, [], 'oh');
   });
+
+  it('should execute migrations in sequence', async () => {
+    mockFs({
+      'path/2016-01-01T17:00:00Z-name.sql': 'select pg_sleep(0.001); create table test (value text);',
+      'path/2016-01-01T19:00:00Z-another-name.sql': 'insert into test (value) values (\'value\');',
+    });
+    await migrate('path', pool);
+  });
 });

@@ -35,5 +35,5 @@
     "test-pg-versions": "node test/get-all-allowed-pg-versions.js | xargs -I {} -n1 sh -c \"npm install pg@{} && npm run mocha\"",
     "test": "npm run lint && npm run mocha"
   },
-  "version": "5.0.0"
+  "version": "5.1.0"
 }
